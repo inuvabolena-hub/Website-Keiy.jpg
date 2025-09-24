@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sertifikat Nganggur International</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        text-align: center;
+        padding: 20px;
+      }
+      canvas {
+        border: 1px solid #333;
+        margin-top: 20px;
+        max-width: 100%;
+        height: auto;
+      }
+      #signature-pad {
+        border: 2px dashed #666;
+        background: #fafafa;
+        cursor: crosshair;
+      }
+      input,
+      button {
+        margin: 5px;
+        padding: 8px;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Generator Sertifikat Nganggur</h1>
+    <input id="name" placeholder="Nama User" /><br />
+    <input id="city" placeholder="Nama Kota" /><br />
+
+    <h3>Tanda Tangan</h3>
+    <canvas id="signature-pad" width="400" height="150"></canvas><br />
+    <button onclick="clearSignature()">Clear</button>
+
+    <br /><br />
+    <button onclick="drawCertificate()">Preview</button>
+    <button onclick="downloadCertificate()">Download PNG</button>
+
+    <br /><br />
+    <canvas id="canvas"></canvas>
+
+    <script>
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+      // === Signature Pad ===
+      const sigCanvas = document.getElementById("signature-pad");
+      const sigCtx = sigCanvas.getContext("2d");
+      let drawing = false;
+
+      sigCanvas.addEventListener("mousedown", () => {
+        drawing = true;
+      });
+      sigCanvas.addEventListener("mouseup", () => {
+        drawing = false;
+        sigCtx.beginPath();
+      });
+      sigCanvas.addEventListener("mousemove", drawSignature);
+
+      function drawSignature(e) {
+        if (!drawing) return;
+        sigCtx.lineWidth = 2;
+        sigCtx.lineCap = "round";
+        sigCtx.strokeStyle = "#000";
+        sigCtx.lineTo(e.offsetX, e.offsetY);
+        sigCtx.stroke();
+        sigCtx.beginPath();
+        sigCtx.moveTo(e.offsetX, e.offsetY);
+      }
+
+      function clearSignature() {
+        sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+      }
+
+      // === Certificate Drawing ===
+      function drawCertificate() {
+        const name = document.getElementById("name").value || "Nama User";
+        const city = document.getElementById("city").value || "Nama Kota";
+
+        // format tanggal Indonesia
+        const today = new Date();
+        const options = { day: "numeric", month: "long", year: "numeric" };
+        const tanggal = today.toLocaleDateString("id-ID", options);
+
+        // nomor sertifikat otomatis
+        const nomor = "No: " + new Date().getFullYear() + "-" + Date.now();
+
+        const baseW = 1200,
+          baseH = 850;
+        canvas.width = baseW;
+        canvas.height = baseH;
+
+        // background gradasi hijau
+        const gradient = ctx.createLinearGradient(0, 0, baseW, baseH);
+        gradient.addColorStop(0, "#e8f5e9");
+        gradient.addColorStop(1, "#f1f8e9");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, baseW, baseH);
+
+        // border hijau
+        ctx.strokeStyle = "#2e7d32";
+        ctx.lineWidth = 12;
+        ctx.strokeRect(20, 20, baseW - 40, baseH - 40);
+        ctx.strokeStyle = "#81c784";
+        ctx.lineWidth = 4;
+        ctx.strokeRect(40, 40, baseW - 80, baseH - 80);
+
+        // nomor sertifikat
+        ctx.font = "16px serif";
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#000";
+        ctx.fillText(nomor, baseW - 60, 90);
+
+        // judul
+        ctx.textAlign = "center";
+        ctx.font = "bold 48px Georgia";
+        ctx.fillStyle = "#000";
+        ctx.fillText("SERTIFIKAT NGANGGUR INTERNATIONAL", baseW / 2, 140);
+
+        ctx.font = "24px serif";
+        ctx.fillText("Diberikan kepada:", baseW / 2, 220);
+
+        ctx.font = "bold 46px 'Times New Roman'";
+        ctx.fillText(name, baseW / 2, 290);
+
+        ctx.font = "20px serif";
+        ctx.fillText("Atas Keahlian luar biasa dalam seni menikmati waktu luang, tidur siang profesional, dan menunda pekerjaan", baseW / 2, 380);
+        ctx.fillText("serta kontribusi dalam komunitas Keluh Kesah Nganggur (KKN).", baseW / 2, 410);
+
+        ctx.font = "18px serif";
+        ctx.fillText(`Diterbitkan di ${city}, ${tanggal}`, baseW / 2, baseH - 190);
+
+        // === Logo custom (pojok kiri bawah, jauh dari judul dan stempel) ===
+        const logo = new Image();
+        logo.src = "CR.png"; // ganti dengan logo kamu
+        logo.onload = () => {
+          const logoW = 140;
+          const logoH = 140;
+          const logoX = 80;
+          const logoY = baseH - logoH - 80;
+          ctx.drawImage(logo, logoX, logoY, logoW, logoH);
+        };
+
+        // watermark tengah
+        const watermark = new Image();
+        watermark.src = "stempel.png";
+        watermark.onload = function () {
+          ctx.save();
+          ctx.globalAlpha = 0.08;
+          const wmSize = 500;
+          ctx.drawImage(watermark, (baseW - wmSize) / 2, (baseH - wmSize) / 2, wmSize, wmSize);
+          ctx.restore();
+        };
+
+        // tanda tangan
+        const sigImage = new Image();
+        sigImage.src = sigCanvas.toDataURL();
+        sigImage.onload = function () {
+          const sigW = 250,
+            sigH = 100;
+          const sigX = (baseW - sigW) / 2;
+          const sigY = baseH - 170;
+          ctx.drawImage(sigImage, sigX, sigY, sigW, sigH);
+          ctx.font = "16px serif";
+          ctx.fillStyle = "#000";
+          ctx.textAlign = "center";
+          ctx.fillText("(Tanda Tangan Peserta)", baseW / 2, sigY + sigH + 25);
+        };
+
+        // === Stempel merah kanan bawah ===
+        const centerX = baseW - 200;
+        const centerY = baseH - 200;
+        const radius = 100;
+
+        ctx.save();
+        ctx.globalAlpha = 0.6;
+        ctx.strokeStyle = "#c62828";
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+        ctx.stroke();
+
+        ctx.fillStyle = "#c62828";
+        ctx.font = "14px serif";
+        const text = "SERTIFIKAT NGANGGUR INTERNATIONAL";
+        for (let i = 0; i < text.length; i++) {
+          const angle = (i / text.length) * (2 * Math.PI);
+          const x = centerX + Math.cos(angle - Math.PI / 2) * (radius - 18);
+          const y = centerY + Math.sin(angle - Math.PI / 2) * (radius - 18);
+          ctx.save();
+          ctx.translate(x, y);
+          ctx.rotate(angle);
+          ctx.fillText(text[i], 0, 0);
+          ctx.restore();
+        }
+        ctx.restore();
+
+        // logo kecil di tengah stempel (opsional)
+        const stampLogo = new Image();
+        stampLogo.src = "kcg.png";
+        stampLogo.onload = () => {
+          const size = 60;
+          ctx.drawImage(stampLogo, centerX - size / 2, centerY - size / 2, size, size);
+        };
+      }
+
+      function downloadCertificate() {
+        drawCertificate();
+        setTimeout(() => {
+          const link = document.createElement("a");
+          link.download = "sertifikat.png";
+          link.href = canvas.toDataURL("image/png");
+          link.click();
+        }, 600);
+      }
+    </script>
+  </body>
+</html>
