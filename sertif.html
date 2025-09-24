@@ -135,9 +135,9 @@
         ctx.font = "18px serif";
         ctx.fillText(`Diterbitkan di ${city}, ${tanggal}`, baseW / 2, baseH - 190);
 
-        // === Logo custom (pojok kiri bawah, jauh dari judul dan stempel) ===
+        // === Logo custom (pojok kiri bawah) ===
         const logo = new Image();
-        logo.src = "CR.png"; // ganti dengan logo kamu
+        logo.src = "img/CR.png";
         logo.onload = () => {
           const logoW = 140;
           const logoH = 140;
@@ -148,7 +148,7 @@
 
         // watermark tengah
         const watermark = new Image();
-        watermark.src = "stempel.png";
+        watermark.src = "img/stempel.png";
         watermark.onload = function () {
           ctx.save();
           ctx.globalAlpha = 0.08;
@@ -200,9 +200,9 @@
         }
         ctx.restore();
 
-        // logo kecil di tengah stempel (opsional)
+        // logo kecil di tengah stempel
         const stampLogo = new Image();
-        stampLogo.src = "kcg.png";
+        stampLogo.src = "img/kcg.png";
         stampLogo.onload = () => {
           const size = 60;
           ctx.drawImage(stampLogo, centerX - size / 2, centerY - size / 2, size, size);
